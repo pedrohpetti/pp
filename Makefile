@@ -1,23 +1,42 @@
+# Compilador
+CC := gcc
+
+# Nome do executavel
+TARGET = pp.exe
+
+# Arquivos fonte .c
 SOURCES = main.c \
-	#comunicacao.c \
-	ctrl.c \
-	interface.c \
+	tasks.c \
+	queue.c \
+	list.c \
+	timers.c \
+	event_groups.c \
+	heap_4.c \
+	port.c \
+
+# Diretorios de busca para #include
+INCLUDE_DIRS := -I.
+INCLUDE_DIRS += -I./include
+
+# Flags para a compilacao (geracao dos arquivos .o)
+CFLAGS := -Wall
+
+# Flags para o linker (.o's para executavel)
+LDFLAGS := -lWinmm
 
 OBJS = $(SOURCES:.c=.o)
-
-TARGET = pmr3401
 
 .PHONY: build
 build: $(TARGET)
 
 $(TARGET): $(OBJS)
-	gcc -o $@ $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 %.o : %.c
-	gcc -Wall -g -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE_DIRS) -c $< -o $@
 
 .PHONY: clean
 clean:
-	del $(OBJS) $(TARGET).exe
+	del $(OBJS) $(TARGET)
 #	For non Windows users:
 #	rm -f $(OBJS) $(TARGET)

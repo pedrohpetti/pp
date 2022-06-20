@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
 
-/*
-    ALARME RESIDENCIAL
-*/
 
 #include "definicoes_sistema.h"
 #include "comunicacao.h"
@@ -19,7 +19,10 @@
   int sensores;
   int acao_matrizTransicaoEstados[NUM_ESTADOS][NUM_EVENTOS];
   int proximo_estado_matrizTransicaoEstados[NUM_ESTADOS][NUM_EVENTOS];
-
+  QueueHandle_t xQueue;
+  int i = 0; //variável bizarra para teste e debug
+  TaskHandle_t xTaskMaqEstados;
+  TaskHandle_t xTaskObterEvento;
 /************************************************************************
  executarAcao
  Executa uma acao
@@ -115,7 +118,7 @@ void iniciaSistema()
  Retorno: codigo do evento
 *************************************************************************/
 
-int obterEvento()
+int vtaskObterEvento()
 {
   char teclas;
 
@@ -139,6 +142,52 @@ int obterEvento()
         return NENHUM_EVENTO;
   }
 } // obterEvento
+int codigoEvento;
+void taskObterEvento(void *pvParameters) {
+  
+  BaseType_t xStatus;
+  for( ;; ) {
+    codigoEvento = NENHUM_EVENTO;
+    // Adicionar lógica para receber eventos
+    if (i%2==0) {// LÓGICA DE TESTE
+      codigoEvento = INICIAR;
+      xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
+      if( xStatus != pdPASS )
+        //Serial.println("Erro ao enviar evento para fila");   
+        printf("Erro ao enviar evento para fila 1 \n");
+      vTaskDelay(200);
+      continue;
+    }
+    if (i%3==0) {// LÓGICA DE TESTE
+      codigoEvento = PLOTAR;
+      xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
+      if( xStatus != pdPASS )
+        //Serial.println("Erro ao enviar evento para fila");
+        printf("Erro ao enviar evento para fila 2 \n");
+        vTaskDelay(200);
+      continue;
+    }
+    if (i%4==0) {// LÓGICA DE TESTE
+      codigoEvento = RETORNAR;
+      xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
+      if( xStatus != pdPASS )
+        //Serial.println("Erro ao enviar evento para fila");
+        printf("Erro ao enviar evento para fila 3 \n");
+        vTaskDelay(200);
+      continue;
+    }
+    if (i%5==0) {// LÓGICA DE TESTE
+      codigoEvento = ENCERRAR;
+      xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
+      if( xStatus != pdPASS )
+        //Serial.println("Erro ao enviar evento para fila");
+        printf("Erro ao enviar evento para fila 4 \n");
+        vTaskDelay(200);
+      continue;
+    }
+  }
+}
+
 
 /************************************************************************
  obterAcao
@@ -164,37 +213,86 @@ int obterProximoEstado(int estado, int codigoEvento) {
 } // obterAcao
 
 
+/*********************************************************************************/
+
+
+void taskMaqEstados(void *pvParameters) {
+  int codigoEvento;
+  const TickType_t xDelay2000ms = pdMS_TO_TICKS( 2000 );
+  TickType_t xLastWakeTime;
+  xLastWakeTime = xTaskGetTickCount();
+  for( ;; ) {
+    if( xQueueReceive( xQueue, &codigoEvento, portMAX_DELAY ) == pdPASS ) {
+      if (codigoEvento != NENHUM_EVENTO)
+      {
+        codigoAcao = obterAcao(estado, codigoEvento);
+        estado = obterProximoEstado(estado, codigoEvento);
+        executarAcao(codigoAcao);
+        /*Serial.print("Estado: ");
+        Serial.print(estado);
+        Serial.print(" Evento: ");
+        Serial.print(codigoEvento);
+        Serial.print(" Acao: ");
+        Serial.println(codigoAcao);*/
+        printf("%d", codigoEvento);
+        printf("Estado: %d Evento: %d Acao:%d\n", estado, codigoEvento, codigoAcao);
+      }
+    }
+    else {
+      printf("Erro ao receber evento da fila\n");
+    }
+    printf("Task 3 (periodic) is running\n");
+    vTaskDelayUntil(&xLastWakeTime, xDelay2000ms);
+    i++;
+  }
+}
+
 /************************************************************************
  Main
  Loop principal de controle que executa a maquina de estados
  Parametros de entrada: nenhum
  Retorno: nenhum
 *************************************************************************/
-int main() {
+int estado;
+int eventoInterno;
+
+int estado = ESPERA;
+int eventoInterno = NENHUM_EVENTO;
+/*
+int main( void ) {
 
   int codigoEvento;
   int codigoAcao;
-  int estado;
-  int eventoInterno;
-
-  estado = ESPERA;
-  eventoInterno = NENHUM_EVENTO;
+  
 
   iniciaSistema();
   printf ("PenPlot pronto\n");
-  while (true) {
-    if (eventoInterno == NENHUM_EVENTO) {
-        codigoEvento = obterEvento();
-    } else {
-        codigoEvento = eventoInterno;
-    }
-    if (codigoEvento != NENHUM_EVENTO)
-    {
-       codigoAcao = obterAcao(estado, codigoEvento);
-       estado = obterProximoEstado(estado, codigoEvento);
-       executarAcao(codigoAcao);
-       eventoInterno = NENHUM_EVENTO;
-       printf("Estado: %d Evento: %d Acao:%d\n", estado, codigoEvento, codigoAcao);
-    }
-  } // while true
+  // --- APPLICATION TASKS CAN BE CREATED HERE --- 
+    xTaskCreate( taskMaqEstados, "Task 1", 1000, NULL, 1, NULL);
+ 
+    // Start the created tasks running.
+    vTaskStartScheduler();
+ 
+    // Execution will only reach here if there was insufficient heap to
+    start the scheduler. 
+    for( ;; );
+    return 0;
+} // main
+*/
+int main() {
+  iniciaSistema();
+  printf ("Alarme iniciado\n");
+
+  // configure tasks
+  xQueue = xQueueCreate(5, sizeof(int));
+  if(xQueue != NULL)
+  {
+    xTaskCreate(taskMaqEstados,"taskMaqEstados", 1500, NULL, 2, &xTaskMaqEstados);
+    xTaskCreate(taskObterEvento,"taskObterEvento", 1000, NULL, 1, &xTaskObterEvento);
+    vTaskStartScheduler();
+  }
+  else
+  {
+    /* The queue could not be created. */
+  }
 } // main
