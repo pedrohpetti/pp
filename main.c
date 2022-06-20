@@ -40,22 +40,28 @@ void executarAcao(int codigoAcao)
     switch(codigoAcao)
     {
     case A01:
-        printf("esperando desenho \n");
+        // inserir função para fazer a conexão wifi/bluetooth e receber o desenho(provavelmente dentro de comunicacao.cpp ou interface.cpp)
+        printf(" case A01: esperando desenho \n");
         break;
     case A02:
-        printf("plotando \n");
+        // inserir função para plotar (dentro de ctrl.cpp)
+        printf("case A02: plotando \n");
         break;
     case A03:
-        printf("retornando \n");
+        // inserir função para retornar (dentro de ctrl.cpp)
+        printf("case A03: retornando \n");
         break;
     case A04:
-        printf("definicoes canceladas \n");
+        // inserir função para encerrar a task/função de receber o desenho
+        printf("case A04: definicoes canceladas \n");
         break;
     case A05:
-        printf("plot cancelado \n");
+        // inserir função para encerrar a task/função de desenhar e retornar o carrinho(dentro de ctrl)
+        printf("case A05: plot cancelado \n");
         break;
     case A06:
-        printf("retornado \n");
+        // inserir função para encerrar a task/função de retornar? sla
+        printf("case A06: retornado \n");
         break;
     } // switch
 
@@ -117,7 +123,7 @@ void iniciaSistema()
  Parametros de entrada: nenhum
  Retorno: codigo do evento
 *************************************************************************/
-
+/*
 int vtaskObterEvento()
 {
   char teclas;
@@ -141,7 +147,7 @@ int vtaskObterEvento()
     default:
         return NENHUM_EVENTO;
   }
-} // obterEvento
+} // obterEvento*/
 int codigoEvento;
 void taskObterEvento(void *pvParameters) {
   
@@ -154,7 +160,7 @@ void taskObterEvento(void *pvParameters) {
       xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
       if( xStatus != pdPASS )
         //Serial.println("Erro ao enviar evento para fila");   
-        printf("Erro ao enviar evento para fila 1 \n");
+        printf("Erro ao enviar evento INICIAR para fila\n");
       vTaskDelay(200);
       continue;
     }
@@ -163,7 +169,7 @@ void taskObterEvento(void *pvParameters) {
       xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
       if( xStatus != pdPASS )
         //Serial.println("Erro ao enviar evento para fila");
-        printf("Erro ao enviar evento para fila 2 \n");
+        printf("Erro ao enviar evento PLOTAR para fila\n");
         vTaskDelay(200);
       continue;
     }
@@ -172,7 +178,7 @@ void taskObterEvento(void *pvParameters) {
       xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
       if( xStatus != pdPASS )
         //Serial.println("Erro ao enviar evento para fila");
-        printf("Erro ao enviar evento para fila 3 \n");
+        printf("Erro ao enviar evento RETORNAR para fila\n");
         vTaskDelay(200);
       continue;
     }
@@ -181,7 +187,7 @@ void taskObterEvento(void *pvParameters) {
       xStatus = xQueueSendToBack( xQueue, &codigoEvento, 0 );
       if( xStatus != pdPASS )
         //Serial.println("Erro ao enviar evento para fila");
-        printf("Erro ao enviar evento para fila 4 \n");
+        printf("Erro ao enviar evento ENCERRAR para fila\n");
         vTaskDelay(200);
       continue;
     }
@@ -234,14 +240,13 @@ void taskMaqEstados(void *pvParameters) {
         Serial.print(codigoEvento);
         Serial.print(" Acao: ");
         Serial.println(codigoAcao);*/
-        printf("%d", codigoEvento);
         printf("Estado: %d Evento: %d Acao:%d\n", estado, codigoEvento, codigoAcao);
       }
     }
     else {
       printf("Erro ao receber evento da fila\n");
     }
-    printf("Task 3 (periodic) is running\n");
+    printf("Task MaqEstados (periodic) is running\n");
     vTaskDelayUntil(&xLastWakeTime, xDelay2000ms);
     i++;
   }
@@ -281,7 +286,7 @@ int main( void ) {
 */
 int main() {
   iniciaSistema();
-  printf ("Alarme iniciado\n");
+  printf ("Penplot iniciado\n");
 
   // configure tasks
   xQueue = xQueueCreate(5, sizeof(int));
