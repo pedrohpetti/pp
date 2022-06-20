@@ -115,44 +115,6 @@ void iniciaSistema()
  Retorno: codigo do evento
 *************************************************************************/
 
-// int decodificarAcionar()
-// {
-//     if (teclas[2] == 'a')
-//     {
-//         if (sha_validar(teclas))
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }//decodificarAcionar
-
-// int decodificarDesacionar()
-// {
-//     if (teclas[2] == 'd')
-//     {
-//         if (sha_validar(teclas))
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }//decodificarDesacionar
-
-// int decodificarDisparar()
-// {
-//     if (teclas[0] == 'l')
-//     {
-//         return true;
-//     }
-//     return false;
-// }//decodificarDisparar
-
-// int decodificarTimeout()
-// {
-//     return tmr_timeout();
-// }
-
 int obterEvento()
 {
   char teclas;
